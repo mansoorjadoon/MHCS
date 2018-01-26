@@ -1,0 +1,70 @@
+Layout in Jade/Pug:
+video#video(preload=“auto” controls=“false”)
+source(type=“video/mp4”)
+canvas#canvas(width=“640” height=“360”)
+#textwrapper
+textarea#csv …
+
+JavaScript:
+function startAnalysis() {
+var url = $(‘input#url’).val();
+$(’#video source’).attr(‘src’, url);
+$("#video")[0].load();
+$("#video")[0].volume = 0.25;
+$(’#analysis’).show();
+$(’#urlinput’).hide();
+
+canvas = document.getElementById(‘canvas’);
+ctx = canvas.getContext(‘2d’);
+video = document.getElementById(‘video’);
+detector = new affdex.FrameDetector(affdex.FaceDetectorMode.LARGE_FACES);
+
+// Set up a loop to draw frames to the canvas element
+video.addEventListener(‘play’, onVideoPlay, 0);
+
+// Set up and start the detector
+detector.detectAllExpressions();
+detector.detectAllEmotions();
+detector.detectAllAppearance();
+
+detector.addEventListener(“onInitializeSuccess”, function() {
+document.getElementById(‘video’).play();
+startTimestamp = (new Date()).getTime() / 1000;
+heartbeat = setInterval(analyzeVideoFrame, 333); // 3fps
+
+printout = setInterval(displayBuffer, 20000);
+});
+detector.addEventListener(“onInitializeFailure”, function() {
+console.error(“Affectiva failed to initialize.”);
+});
+
+detector.addEventListener(“onImageResultsSuccess”, onImageResultsSuccess);
+detector.addEventListener(“onImageResultsFailure”, onImageResultsFailure);
+
+detector.start();
+
+}
+
+function onVideoPlay() {
+vid_width = $(’#video’).width();
+vid_height = $(’#video’).height();
+
+$(‘canvas’).attr(‘width’, vid_width);
+$(‘canvas’).attr(‘height’, vid_height);
+$(‘canvas’).show();
+$(’#video’).hide();
+}
+
+function analyzeVideoFrame() {
+
+//Get a canvas element from DOM
+var aCanvas = document.getElementById(“canvas”);
+var context = aCanvas.getContext(‘2d’);
+
+//Process the frame
+if (!video.paused && !video.ended) {
+ctx.drawImage(video, 0, 0);
+detector.process(context.getImageData(0, 0, vid_width, vid_height),
+video.currentTime);
+}
+}
