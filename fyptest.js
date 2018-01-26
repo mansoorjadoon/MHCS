@@ -14,7 +14,11 @@
   detector.addEventListener("onInitializeSuccess", function() {
     console.log("Load hogya hai");
   });
-  detector.addEventListener("onInitializeFailure", function() {});
+  detector.addEventListener("onInitializeFailure", function() {
+    console.log("fail hogya hai");
+
+
+  });
 
   /* 
     onImageResults success is called when a frame is processed successfully and receives 3 parameters:
@@ -25,7 +29,7 @@
     - timestamp: The timestamp of the captured image in seconds.
   */
 
-
+detector.start();
 
 
   detector.addEventListener("onResetSuccess", function() {});
@@ -39,27 +43,33 @@
 
   detector.detectAllExpressions();
   detector.detectAllEmotions();
-  detector.detectAllEmojis();
-  detector.detectAllAppearance();
+  //detector.detectAllEmojis();
+  //detector.detectAllAppearance();
+
+
+    detector.addEventListener("onImageResultsSuccess", function (faces, image, timestamp) {
+      //console.log("haha");
+          if (faces.length > 0) {
+            console.log("When I am here i have detected a face in the frame.");
+    console.log(faces[0]["emotions"]["joy"]);
+    }
+      });
+   
 
 
 
 
 
 
-detector.addEventListener("onImageResultsSuccess", function (faces, image, timestamp) {
-  console.log("haha");
-      if (faces.length > 0) {
-console.log(faces[0]["emotions"]["joy"]);
-}
-  });
+
+
   /* 
     onImageResults success receives 3 parameters:
     - image: An imageData object containing the pixel values for the processed frame.
     - timestamp: An imageData object contain the pixel values for the processed frame.
     - err_detail: A string contains the encountered exception.
   */
-  detector.start();
+  
 
 
 
@@ -73,24 +83,28 @@ var video = document.getElementById("video");
 drawVideo(context, video, canvas.width, canvas.height);
 // calls drawVideo() function, passing all the objects
 function drawVideo(context, video, width, height) {         
-  context.drawImage(video, 0, 0, width, height); // draws current video frame to canvas   
-  //Process the frame
+  context.drawImage(video, 0, 0, width, height); // draws current video frame to canvas
 
-  //Cache the timestamp of the first frame processed
+//Cache the timestamp of the first frame processed
   var startTimestamp = (new Date()).getTime() / 1000;
 
   //Get imageData object.
   var imageData = context.getImageData(0, 0, 640, 480);
-  console.log(imageData);
+  //console.log(imageData);
   //detector.process();
   //Get current time in seconds
   var now = (new Date()).getTime() / 1000;
 
   //Get delta time between the first frame and the current frame.
   var deltaTime = now - startTimestamp;
-var delay = 100; // milliseconds delay for slowing framerate
+  var delay = 100; // milliseconds delay for slowing framerate
 
 
+
+
+  //Process the frame
+  detector.process(imageData, deltaTime);
+  
 
 
 setTimeout(drawVideo, delay, context, video, width, height); // recursively calls drawVideo() again after delay
@@ -100,7 +114,9 @@ setTimeout(drawVideo, delay, context, video, width, height); // recursively call
 
 
 
-
+/*
     detector.addEventListener("onImageResultsFailure", function (image, timestamp, err_detail) {
     console.log("Image fail");
   });
+
+*/
